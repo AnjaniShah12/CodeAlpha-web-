@@ -1,24 +1,59 @@
-document.getElementById('ageForm').addEventListener('submit', function(event) {
-    event.preventDefault();  // Prevent the form from submitting and refreshing the page
+// Select DOM elements
+const taskInput = document.getElementById('task-input');
+const addTaskButton = document.getElementById('add-task-btn');
+const taskList = document.getElementById('task-list');
 
-    // Get the selected date of birth from the input field
-    const dob = new Date(document.getElementById('dob').value);
+// Load tasks from localStorage
+let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
 
-    // Get the current date
-    const today = new Date();
+// Function to display tasks
+function displayTasks() {
+    taskList.innerHTML = ''; // Clear the list before re-rendering
 
-    // Calculate the age difference in years
-    let age = today.getFullYear() - dob.getFullYear();
+    tasks.forEach((task, index) => {
+        const li = document.createElement('li');
+        li.classList.toggle('completed', task.completed);
 
-    // Check if the birthday has passed this year or not
-    const monthDifference = today.getMonth() - dob.getMonth();
-    const dayDifference = today.getDate() - dob.getDate();
+        li.innerHTML = `
+            <span class="task-text">${task.text}</span>
+            <button class="delete-btn" onclick="deleteTask(${index})">Delete</button>
+            <button class="complete-btn" onclick="toggleComplete(${index})">Complete</button>
+        `;
 
-    // If the birthday hasn't occurred yet this year, subtract 1 from the age
-    if (monthDifference < 0 || (monthDifference === 0 && dayDifference < 0)) {
-        age--;
+        taskList.appendChild(li);
+    });
+}
+
+// Add task
+addTaskButton.addEventListener('click', () => {
+    const taskText = taskInput.value.trim();
+
+    if (taskText) {
+        tasks.push({ text: taskText, completed: false });
+        taskInput.value = ''; // Clear the input field
+        saveTasks();
+        displayTasks();
     }
-
-    // Display the result in the 'age' element
-    document.getElementById('age').textContent = age;
 });
+
+// Toggle task completion
+function toggleComplete(index) {
+    tasks[index].completed = !tasks[index].completed;
+    saveTasks();
+    displayTasks();
+}
+
+// Delete task
+function deleteTask(index) {
+    tasks.splice(index, 1);
+    saveTasks();
+    displayTasks();
+}
+
+// Save tasks to localStorage
+function saveTasks() {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+}
+
+// Initial display of tasks
+displayTasks();
